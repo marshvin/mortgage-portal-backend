@@ -1,33 +1,55 @@
-HELP.md
+# Java
+*.class
+*.jar
+*.war
+*.log
+
+# Maven
 target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+!src/main/resources/static/target/
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### IntelliJ IDEA ###
-.idea
-*.iws
+# IntelliJ / VSCode / Eclipse
+.idea/
 *.iml
-*.ipr
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
 .vscode/
+.project
+.classpath
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+*.gz
+
+# Environment
+.env
+.env.*
+
+# Docker
+**/Dockerfile
+**/docker-compose.yml
+**/.docker/
+
+# Coverage / Test Reports
+coverage/
+*.lcov
+target/surefire-reports/
+
+# Kafka/DB volumes (optional if using local mounts)
+infra/kafka-data/
+infra/postgres-data/
+
+# CI/CD
+**/build/
+.github/
+
+# Postman artifacts
+*.postman_collection.json
+*.postman_environment.json
+
+# OpenAPI generated
+openapi.yaml

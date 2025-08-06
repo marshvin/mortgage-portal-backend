@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: mortgage-postgres
+    environment:
+      POSTGRES_DB: mortgage_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mortgage-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d mortgage_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    container_name: mortgage-zookeeper
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: yes
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper_data:/bitnami/zookeeper
+    networks:
+      - mortgage-network
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc localhost 2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    image: bitnami/kafka:latest
+    container_name: mortgage-kafka
+    environment:
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      ALLOW_PLAINTEXT_LISTENER: yes
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka_data:/bitnami/kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    networks:
+      - mortgage-network
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  app:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: mortgage-app
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_URL: jdbc:postgresql://postgres:5432/mortgage_db
+      KAFKA_BROKER: kafka:9092
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - mortgage-network
+    env_file:
+      - ../.env
+
+volumes:
+  postgres_data:
+    driver: local
+  zookeeper_data:
+    driver: local
+  kafka_data:
+    driver: local
+
+networks:
+  mortgage-network:
+    driver: bridge

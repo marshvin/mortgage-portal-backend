@@ -29,27 +29,8 @@ logs/
 .env
 .env.*
 
-# Docker
-**/Dockerfile
-**/docker-compose.yml
-**/.docker/
 
 # Coverage / Test Reports
 coverage/
 *.lcov
 target/surefire-reports/
-
-# Kafka/DB volumes (optional if using local mounts)
-infra/kafka-data/
-infra/postgres-data/
-
-# CI/CD
-**/build/
-.github/
-
-# Postman artifacts
-*.postman_collection.json
-*.postman_environment.json
-
-# OpenAPI generated
-openapi.yaml

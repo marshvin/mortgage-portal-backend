@@ -1,6 +1,7 @@
 package com.mortgage.mortgageportal.controller;
 
 import com.mortgage.mortgageportal.dto.*;
+import com.mortgage.mortgageportal.dto.DocumentResponse;
 import com.mortgage.mortgageportal.entities.Application;
 import com.mortgage.mortgageportal.entities.Decision;
 import com.mortgage.mortgageportal.entities.User;
@@ -8,8 +9,10 @@ import com.mortgage.mortgageportal.enums.ApplicationStatus;
 import com.mortgage.mortgageportal.enums.UserRole;
 import com.mortgage.mortgageportal.mapper.ApplicationMapper;
 import com.mortgage.mortgageportal.mapper.DecisionMapper;
+import com.mortgage.mortgageportal.mapper.DocumentMapper;
 import com.mortgage.mortgageportal.service.ApplicationService;
 import com.mortgage.mortgageportal.service.DecisionService;
+import com.mortgage.mortgageportal.service.DocumentService;
 import com.mortgage.mortgageportal.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +33,7 @@ import java.util.stream.Collectors;
 public class ApplicationController {
     private final ApplicationService applicationService;
     private final DecisionService decisionService;
+    private final DocumentService documentService;
     private final UserService userService;
 
     @PostMapping
@@ -66,5 +70,32 @@ public class ApplicationController {
         User officer = userService.getCurrentUser(auth);
         Decision decision = decisionService.decideApplication(id, request, officer);
         return ResponseEntity.ok(DecisionMapper.toResponseDTO(decision));
+    }
+    
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('APPLICANT')")
+    public ResponseEntity<ApplicationResponseDTO> updateApplication(@PathVariable UUID id, @Valid @RequestBody ApplicationRequestDTO request, Authentication auth) {
+        User user = userService.getCurrentUser(auth);
+        Application app = applicationService.updateApplication(id, request, user);
+        return ResponseEntity.ok(ApplicationMapper.toResponseDTO(app));
+    }
+    
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('APPLICANT')")
+    public ResponseEntity<Void> deleteApplication(@PathVariable UUID id, Authentication auth) {
+        User user = userService.getCurrentUser(auth);
+        applicationService.deleteApplication(id, user);
+        return ResponseEntity.noContent().build();
+    }
+    
+    @GetMapping("/{id}/documents")
+    @PreAuthorize("hasAnyRole('APPLICANT','OFFICER')")
+    public ResponseEntity<List<DocumentResponse>> getApplicationDocuments(@PathVariable UUID id, Authentication auth) {
+        User user = userService.getCurrentUser(auth);
+        List<DocumentResponse> documents = documentService.getDocumentsByApplicationId(id, user)
+                .stream()
+                .map(DocumentMapper::toResponseDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(documents);
     }
 }

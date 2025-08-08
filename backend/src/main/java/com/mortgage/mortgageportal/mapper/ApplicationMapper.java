@@ -11,13 +11,14 @@ public class ApplicationMapper {
                 .user(user)
                 .amount(dto.getAmount())
                 .loanTermMonths(dto.getLoanTermMonths())
+                .status(com.mortgage.mortgageportal.enums.ApplicationStatus.PENDING)
                 .build();
     }
 
     public static ApplicationResponseDTO toResponseDTO(Application app) {
         ApplicationResponseDTO dto = new ApplicationResponseDTO();
         dto.setId(app.getId());
-        dto.setUserId(app.getUser().getId());
+        dto.setUserId(app.getUser() != null ? app.getUser().getId() : null);
         dto.setStatus(app.getStatus());
         dto.setAmount(app.getAmount());
         dto.setLoanTermMonths(app.getLoanTermMonths());

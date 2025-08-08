@@ -60,6 +60,25 @@ services:
       timeout: 10s
       retries: 3
 
+  activemq:
+    image: rmohr/activemq:5.15.9
+    container_name: mortgage-activemq
+    ports:
+      - "61616:61616"
+      - "8161:8161"
+    environment:
+      ACTIVEMQ_ADMIN_LOGIN: admin
+      ACTIVEMQ_ADMIN_PASSWORD: admin
+    volumes:
+      - activemq_data:/data/activemq
+    networks:
+      - mortgage-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8161/admin || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   app:
     build:
       context: ../backend
@@ -71,12 +90,15 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_URL: jdbc:postgresql://postgres:5432/mortgage_db
       KAFKA_BROKER: kafka:9092
+      ACTIVEMQ_BROKER_URL: tcp://activemq:61616
     ports:
       - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
       kafka:
+        condition: service_healthy
+      activemq:
         condition: service_healthy
     networks:
       - mortgage-network
@@ -89,6 +111,8 @@ volumes:
   zookeeper_data:
     driver: local
   kafka_data:
+    driver: local
+  activemq_data:
     driver: local
 
 networks:

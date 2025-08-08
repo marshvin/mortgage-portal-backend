@@ -13,4 +13,6 @@ public interface ApplicationService {
     Application createApplication(ApplicationRequestDTO request, User user);
     Application getApplicationById(UUID id, User requester);
     List<Application> listApplications(ApplicationStatus status, LocalDateTime createdFrom, LocalDateTime createdTo, String nationalId);
+    Application updateApplication(UUID id, ApplicationRequestDTO request, User user);
+    void deleteApplication(UUID id, User user);
 }
